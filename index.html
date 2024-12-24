@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background-color: #f0f8ff;
+        }
+        h1 {
+            color: #333;
+        }
+        .signal {
+            margin: 20px 0;
+            padding: 10px;
+            border: 2px solid #333;
+            color: white;
+            background-color: #4caf50;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body>
+    <h1>Signal App</h1>
+    <p>Die App gibt alle 4 Sekunden ein Signal aus, wechselt nach 7 Sekunden zu einem neuen Intervall und schließt nach 7 Minuten.</p>
+    
+    <div id="signalIndicator" class="signal">Signal aktiv!</div>
+
+    <script>
+        let isFourSecondInterval = true; // Start mit 4-Sekunden-Intervall
+        let signalIndicator = document.getElementById("signalIndicator");
+        let intervalId; // Speichert das aktuelle Intervall
+
+        // Funktion, um einen Ton abzuspielen
+        function playBeep() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = "sine"; // Sinuswelle als Ton
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // 440 Hz (Standard-A-Ton)
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5); // Ton für 0.5 Sekunden
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // Funktion für das Signal
+        function showSignal() {
+            signalIndicator.style.visibility = "visible"; // Zeige Signal visuell
+            playBeep(); // Spiele Tonsignal
+
+            // Verstecke das Signal nach 1 Sekunde wieder
+            setTimeout(() => {
+                signalIndicator.style.visibility = "hidden";
+            }, 1000);
+        }
+
+        // Starte mit dem 4-Sekunden-Intervall
+        function startIntervals() {
+            intervalId = setInterval(showSignal, 4000);
+
+            // Wechsel zu 7-Sekunden-Intervall nach 4 Sekunden + 7 Sekunden
+            setTimeout(() => {
+                clearInterval(intervalId); // Stoppe aktuelles Intervall
+                isFourSecondInterval = false;
+                intervalId = setInterval(showSignal, 7000); // Starte 7-Sekunden-Intervall
+            }, 11000); // 4 Sekunden + 7 Sekunden
+        }
+
+        // Automatisches Schließen nach 7 Minuten
+        setTimeout(() => {
+            console.log("Die App schließt sich.");
+            window.close(); // Schließt die Seite, wenn im Browser erlaubt
+        }, 7 * 60 * 1000);
+
+        // Starte die Intervalle
+        startIntervals();
+    </script>
+</body>
+</html>
